@@ -21,7 +21,6 @@ namespace recieve_save_data
         public Form1()
         {
             InitializeComponent();
-            Init();
         }
 
         private void start_btn_Click(object sender, EventArgs e)
@@ -47,30 +46,8 @@ namespace recieve_save_data
             value_pb.Value = data_value;
         }
 
-        private void Init()
-        {
-            try
-            {
-                myport = new SerialPort();
-                myport.BaudRate = 9600;
-                myport.PortName = port_tb.Text;
-                myport.Parity = Parity.None;
-                myport.DataBits = 8;
-                myport.StopBits = StopBits.One;
-            }catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message, "please fill all the fields");
-            }
-            
-            try
-            {
-                myport.Open();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "COM Port error!!!Error opening port");
-            }
-        }
+        
+
 
         private void stop_btn_Click(object sender, EventArgs e)
         {
@@ -99,5 +76,97 @@ namespace recieve_save_data
             
       
         }
+
+
+        private void exit_btn_click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            updatePorts();//update the available port(s) on combobox
+        }
+
+
+        private void updatePorts()
+        {
+            String[] ports = SerialPort.GetPortNames();
+            foreach (String port in ports)
+            {
+                port_name_cb.Items.Add(port);
+            }
+        }
+
+        private void connect_btn_click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (myport.IsOpen)
+                {
+                    disconnect();
+                }
+                else
+                {
+                    connect();
+                }
+            }catch(Exception)
+            {
+                MessageBox.Show("please connect you device \n check: may be your device not detected by the sysetem", "COM port Error");
+            }
+
+
+        }
+
+        private void connect()
+        {
+
+            //check if all settings have been selected
+            if(port_name_cb.SelectedIndex != -1 & baud_rate_cb.SelectedIndex != -1 & parity_cb.SelectedIndex != -1 & data_bits_cb.SelectedIndex != -1 & stop_bits_cb.SelectedIndex != -1)
+            {
+                //if yes then set the ports settings and open the port fro communication
+                Init();
+
+            }
+            else
+            {
+                MessageBox.Show("Please select all the COM Port Settings","Error!" );
+            }
+            //if the port is open, chnage the connect button to Diconnct , enable the serial monitor.
+            if (myport.IsOpen)
+            {
+                connect_btn.Text = "Disconnect";
+                serial_monitor_gb.Enabled = true;
+            }
+        }
+
+        private void Init()
+        {
+                myport = new SerialPort();
+                myport.BaudRate = int.Parse(baud_rate_cb.Text);
+                myport.PortName = port_name_cb.Text;
+                myport.Parity = (Parity)Enum.Parse(typeof(Parity), parity_cb.Text);
+                myport.DataBits = int.Parse(data_bits_cb.Text);
+                myport.StopBits = (StopBits)Enum.Parse(typeof(StopBits), stop_bits_cb.Text);
+           
+            try
+            {
+                myport.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "COM Port error!!!Error opening port");
+            }
+        }
+
+        private void disconnect()
+        {
+            myport.Close();
+            connect_btn.Text = "Connect";
+            serial_monitor_gb.Enabled = false;
+        }
+
+
     }
 }
